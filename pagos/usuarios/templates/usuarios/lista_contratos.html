@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-file-contract"></i> Lista de Contratos</h2>
+
+    <a href="{% url 'crear_contrato' %}" class="btn btn-primary mb-3">
+        <i class="fas fa-plus"></i> Nuevo Contrato
+    </a>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Cliente</th>
+                <th>Nº Abonado</th>
+                <th>Servicios Contratados</th>
+                <th>Total ($)</th>
+                <th>Fecha Contratación</th>
+                <th>Fecha de Pago</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contrato in contratos %}
+            <tr>
+                <td>{{ contrato.cliente.nombre }} {{ contrato.cliente.apellido_paterno }}</td>
+                <td>{{ contrato.numero_abonado|default:'-' }}</td>
+                <td>
+                    <ul>
+                        {% for servicio in contrato.servicios.all %}
+                        <li>{{ servicio.nombre }} (${{ servicio.precio }})</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>${{ contrato.total }}</td>
+                <td>{{ contrato.fecha_contratacion }}</td>
+                <td>{{ contrato.fecha_pago }}</td>
+                <td>
+                    <a href="{% url 'editar_contrato' contrato.pk %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'eliminar_contrato' contrato.pk %}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No hay contratos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

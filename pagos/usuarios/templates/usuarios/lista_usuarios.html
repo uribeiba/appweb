@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Mantenimiento de Usuarios{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Mantenimiento de Usuarios</h3>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#nuevoUsuarioModal">
+            <i class="fas fa-plus"></i> Nuevo Registro
+        </button>
+    </div>
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Usuario</th>
+                    <th>Empleado</th>
+                    <th>Rol</th>
+                    <th>Fecha Registro</th>
+                    <th>Estatus</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ usuario.username }}</td>
+                    <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                    <td>{{ usuario.rol.nombre }}</td>
+                    <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge badge-success">ACTIVO</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#editarUsuarioModal{{ usuario.id }}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No hay usuarios registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODALES PARA EDITAR USUARIO -->
+{% for usuario in usuarios %}
+<div class="modal fade" id="editarUsuarioModal{{ usuario.id }}" tabindex="-1" role="dialog" aria-labelledby="editarUsuarioModalLabel{{ usuario.id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{% url 'editar_usuario' usuario.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nombre de Usuario</label>
+                        <input type="text" class="form-control" name="username" value="{{ usuario.username }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" class="form-control" name="first_name" value="{{ usuario.first_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" class="form-control" name="last_name" value="{{ usuario.last_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" class="form-control" name="email" value="{{ usuario.email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select class="form-control" name="rol" required>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if usuario.rol.id == rol.id %}selected{% endif %}>{{ rol.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="estatus" {% if usuario.estatus %}checked{% endif %}>
+                        <label class="form-check-label">Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,29 @@
+<!-- editar_servicio.html -->
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-edit"></i> Editar Servicio: {{ servicio.nombre }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mt-3">
+            <label>Nombre del Servicio</label>
+            {{ form.nombre|add_class:"form-control" }}
+        </div>
+        <div class="mt-3">
+            <label>Precio del Servicio</label>
+            {{ form.precio|add_class:"form-control" }}
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Actualizar
+            </button>
+            <a href="{% url 'servicios' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

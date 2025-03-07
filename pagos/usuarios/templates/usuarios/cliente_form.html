@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-user-plus"></i> {% if form.instance.pk %}Editar Cliente{% else %}Nuevo Cliente{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Información del Cliente -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user"></i> Datos del Cliente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label><i class="fas fa-id-card"></i> Número Documento</label>
+                        {{ form.numero_documento|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label><i class="fas fa-envelope"></i> Correo electrónico</label>
+                        {{ form.correo|add_class:"form-control" }}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label><i class="fas fa-user-tag"></i> Nombre</label>
+                        {{ form.nombre|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label>Apellido Paterno</label>
+                        {{ form.apellido_paterno|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label>Apellido Materno</label>
+                        {{ form.apellido_materno|add_class:"form-control" }}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label><i class="fas fa-venus-mars"></i> Sexo</label>
+                        {{ form.sexo|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label><i class="fas fa-calendar-alt"></i> Fecha Nacimiento</label>
+                        {{ form.fecha_nacimiento|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-4">
+                        <label><i class="fas fa-phone"></i> Teléfono</label>
+                        {{ form.telefono|add_class:"form-control" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direcciones Instalación -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Direcciones de Instalación</h5>
+            </div>
+            <div class="card-body">
+                {{ formset.management_form }}
+                {% for direccion_form in formset %}
+                    <div class="row border-bottom py-2 direccion-formset">
+                        <div class="col-md-5">
+                            <label><i class="fas fa-map-pin"></i> Zona</label>
+                            {{ direccion_form.zona|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-5">
+                            <label><i class="fas fa-road"></i> Dirección</label>
+                            {{ direccion_form.direccion|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            {% if direccion_form.instance.pk %}
+                            <div class="form-check">
+                                {{ direccion_form.DELETE|add_class:"form-check-input" }}
+                                <label class="form-check-label text-danger">Eliminar</label>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar</button>
+            <a href="{% url 'cliente_list' %}" class="btn btn-outline-secondary"><i class="fas fa-times"></i> Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

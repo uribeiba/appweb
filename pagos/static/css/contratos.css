@@ -1,0 +1,95 @@
+/* ✅ Mejorando la apariencia de la tabla */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.table thead {
+    background: #007bff;
+    color: white;
+    text-align: center;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+/* ✅ Mejorando los botones de acción */
+.btn-editar {
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+}
+
+.btn-eliminar {
+    background: #dc3545;
+    color: white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+}
+
+.btn-editar:hover {
+    background: #0056b3;
+}
+
+.btn-eliminar:hover {
+    background: #b22222;
+}
+
+/* ✅ Estilos para las etiquetas de estado */
+.badge-activo {
+    background: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.badge-inactivo {
+    background: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+
+#listaClientes {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 1050;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+#listaClientes {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;  /* Evita que la lista sea muy grande */
+    overflow-y: auto;  /* Agrega scroll si hay muchos resultados */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 1050;  /* Asegura que se mantenga sobre otros elementos */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#listaClientes a {
+    padding: 10px;
+    display: block;
+    text-decoration: none;
+    color: #333;
+}
+
+#listaClientes a:hover {
+    background-color: #f1f1f1;
+}

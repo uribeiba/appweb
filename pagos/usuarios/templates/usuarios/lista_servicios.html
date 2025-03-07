@@ -1,0 +1,75 @@
+<!-- lista_servicios.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-concierge-bell"></i> Mantenimiento de Servicios</h2>
+
+    <button class="btn btn-primary" data-toggle="modal" data-target="#modalAgregarServicio">
+        <i class="fas fa-plus"></i> Nuevo Registro
+    </button>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Servicio</th>
+                <th>Costo</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servicio in servicios %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ servicio.nombre }}</td>
+                <td>${{ servicio.precio }}</td>
+                <td>
+                    <a href="{% url 'editar_servicio' servicio.id %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'eliminar_servicio' servicio.id %}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No hay servicios registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Modal para agregar servicio -->
+    <div class="modal fade" id="modalAgregarServicio" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registro de Servicio</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <form method="POST" action="{% url 'agregar_servicio' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Nombre</label>
+                            <input type="text" class="form-control" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Costo</label>
+                            <input type="number" class="form-control" name="precio" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
