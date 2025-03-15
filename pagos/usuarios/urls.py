@@ -15,6 +15,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
 
     # Autenticación
+    path('', lambda request: redirect('login'), name='inicio'),  # Redirige la raíz al login
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -61,6 +62,7 @@ urlpatterns = [
     path('servicios/agregar/', views.agregar_servicio, name='agregar_servicio'),
     path('servicios/<int:servicio_id>/editar/', views.editar_servicio, name='editar_servicio'),
     path('servicios/<int:servicio_id>/eliminar/', views.eliminar_servicio, name='eliminar_servicio'),
+<<<<<<< HEAD
     
     path('get_direccion/<int:cliente_id>/', views.obtener_direcciones_cliente, name='obtener_direcciones_cliente'),
     path('api/clientes/', api_clientes, name='api_clientes'),
@@ -68,3 +70,6 @@ urlpatterns = [
     
     path('pagos/', pago_servicios, name='pago_servicios'),
 ]
+=======
+]
+>>>>>>> Actualización de configuración sin modificar settings.py
