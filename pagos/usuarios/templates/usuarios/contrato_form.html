@@ -3,31 +3,64 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2><i class="fas fa-file-contract"></i> Nuevo Contrato</h2>
-
+    <h2 class="mb-4">Nuevo Contrato</h2>
     <form method="post" id="formContrato">
         {% csrf_token %}
+
+        <!-- Campos del formulario -->
         <div class="row">
-            <div class="col-md-6">{{ form.cliente.label_tag }}{{ form.cliente }}</div>
-            <div class="col-md-6">{{ form.direccion_instalacion.label_tag }}{{ form.direccion_instalacion }}</div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-6">{{ form.numero_abonado.label_tag }}{{ form.numero_abonado }}</div>
-            <div class="col-md-6">{{ form.dias_gracia.label_tag }}{{ form.dias_gracia }}</div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-6">{{ form.fecha_contratacion.label_tag }}{{ form.fecha_contratacion }}</div>
+            <!-- Selección de Cliente con Modal -->
             <div class="col-md-6">
-                <label for="id_dia_pago"><strong>Día de Pago:</strong></label>
-                <input type="number" name="dia_pago" id="id_dia_pago" class="form-control" min="1" max="31" value="{{ form.dia_pago.value|default_if_none:'' }}">
+                <label><strong>Cliente:</strong></label>
+                <div class="input-group">
+                    <input type="text" id="buscarCliente" class="form-control" placeholder="Buscar cliente..." readonly>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalClientes">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <input type="hidden" name="cliente" id="id_cliente">
             </div>
-            
-            
+            <!-- Dirección de Instalación -->
+            <div class="col-md-6">
+                <label><strong>Dirección de Instalación:</strong></label>
+                <select id="id_direccion_instalacion" name="direccion_instalacion" class="form-control">
+                    <option value="">Seleccione una dirección...</option>
+                </select>
+                <small id="mensajeSinDirecciones" class="text-danger" style="display: none;">No hay direcciones disponibles</small>
+            </div>
         </div>
 
-        <!-- LISTA DE SERVICIOS -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label><strong>Número abonado:</strong></label>
+                {{ form.numero_abonado }}
+            </div>
+            <div class="col-md-6">
+                <label><strong>Días de gracia:</strong></label>
+                {{ form.dias_gracia }}
+            </div>
+        </div>
+
+        <!-- Fecha de contratación y Descripción en la misma fila -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label><strong>Fecha de contratación:</strong></label>
+                {{ form.fecha_contratacion }}
+            </div>
+            <div class="col-md-6">
+                <label><strong>Descripción:</strong></label>
+                {{ form.descripcion }}
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label><strong>Día de pago:</strong></label>
+                {{ form.dia_pago }}
+            </div>
+        </div>
+
+        <!-- Lista de Servicios -->
         <div class="mt-3">
             <label><strong>Servicios contratados:</strong></label>
             {% for servicio in form.servicios.field.queryset %}
@@ -40,30 +73,125 @@
             {% endfor %}
         </div>
 
-        <div class="mt-3">{{ form.descripcion.label_tag }}{{ form.descripcion }}</div>
+        <!-- Total de Servicios -->
+        <div class="alert alert-success mt-3">
+            <strong>Total Servicios:</strong> $<span id="total">0</span>
+        </div>
 
-        <div class="alert alert-success mt-3"><strong>Total Servicios:</strong> <span id="total">0</span></div>
-
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Contrato</button>
+        <!-- Botón de Guardar siempre visible -->
+        <div class="sticky-bottom bg-white py-3 text-center">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Contrato
+            </button>
+        </div>
     </form>
 </div>
 
-<!-- SCRIPT PARA CALCULAR TOTAL EN TIEMPO REAL -->
+<!-- Modal para buscar cliente -->
+<div class="modal fade" id="modalClientes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="filtroClientes" class="form-control" placeholder="Buscar por nombre o documento...">
+                <table class="table mt-3">
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>Nombre</th>
+                            <th>Seleccionar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaClientes"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT PARA MANEJO DE DIRECCIONES Y TOTAL DE SERVICIOS -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const servicios = document.querySelectorAll('input[name="servicios"]');
-    const totalSpan = document.getElementById('total');
 
+    // Función para calcular el total de servicios
     function calcularTotal() {
         let total = 0;
-        servicios.forEach(s => {
-            if (s.checked) total += parseFloat(s.dataset.precio) || 0;
+        document.querySelectorAll("input[name='servicios']:checked").forEach(checkbox => {
+            total += parseFloat(checkbox.dataset.precio) || 0;
         });
-        totalSpan.textContent = `$${total.toLocaleString("es-CL")}`;
+        document.getElementById("total").textContent = `$${total.toLocaleString("es-CL")}`;
     }
 
-    servicios.forEach(s => s.addEventListener('change', calcularTotal));
+    document.querySelectorAll("input[name='servicios']").forEach(checkbox => {
+        checkbox.addEventListener("change", calcularTotal);
+    });
+
     calcularTotal();
+
+    // Cargar direcciones del cliente seleccionado
+    function cargarDirecciones(clienteId) {
+        let selectDireccion = document.getElementById("id_direccion_instalacion");
+        let mensajeSinDirecciones = document.getElementById("mensajeSinDirecciones");
+        
+        selectDireccion.innerHTML = "<option>Cargando...</option>";
+
+        fetch(`/api/clientes/${clienteId}/direcciones/`)
+        .then(response => response.json())
+        .then(data => {
+            selectDireccion.innerHTML = "";
+
+            if (data.length === 0) {
+                mensajeSinDirecciones.style.display = "block";
+                selectDireccion.innerHTML = "<option value=''>No hay direcciones disponibles</option>";
+            } else {
+                mensajeSinDirecciones.style.display = "none";
+                data.forEach(direccion => {
+                    let option = document.createElement("option");
+                    option.value = direccion.id;
+                    option.textContent = `${direccion.direccion} (${direccion.zona})`;
+                    selectDireccion.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error al cargar direcciones:", error);
+            selectDireccion.innerHTML = "<option>Error al cargar</option>";
+            mensajeSinDirecciones.style.display = "block";
+        });
+    }
+
+    // Ejecutar carga de clientes cuando se abre el modal
+    document.querySelector('[data-bs-target="#modalClientes"]').addEventListener('click', function () {
+        fetch('/api/clientes/')
+        .then(response => response.json())
+        .then(data => {
+            let listaClientes = document.getElementById("listaClientes");
+            listaClientes.innerHTML = "";
+            data.forEach(cliente => {
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${cliente.numero_documento}</td>
+                    <td>${cliente.nombre}</td>
+                    <td><button class="btn btn-success seleccionar-cliente" data-id="${cliente.id}" data-nombre="${cliente.nombre}">Seleccionar</button></td>
+                `;
+                listaClientes.appendChild(row);
+            });
+
+            document.querySelectorAll(".seleccionar-cliente").forEach(boton => {
+                boton.addEventListener("click", function() {
+                    document.getElementById("buscarCliente").value = this.getAttribute("data-nombre");
+                    document.getElementById("id_cliente").value = this.getAttribute("data-id");
+                    $("#modalClientes").modal("hide");
+                    cargarDirecciones(this.getAttribute("data-id"));
+                });
+            });
+        })
+        .catch(error => console.error("Error al cargar clientes:", error));
+    });
+
 });
 </script>
 {% endblock %}

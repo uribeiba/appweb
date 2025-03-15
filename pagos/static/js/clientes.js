@@ -1,7 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("✅ clientes.js cargado correctamente.");
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("clientes.js cargado correctamente.");
 
-    // ✅ Función para registrar un cliente
     async function registrarCliente(event) {
         event.preventDefault();
 
@@ -9,16 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
             title: "Procesando...",
             html: "Por favor, espere.",
             allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
+            didOpen: () => {
+                Swal.showLoading();
+            },
         });
 
         const formNuevoCliente = document.getElementById("formNuevoCliente");
-        if (!formNuevoCliente) {
-            console.error("❌ Formulario de nuevo cliente no encontrado.");
-            return;
-        }
-
         const formData = new FormData(formNuevoCliente);
+
         let zonas = Array.from(document.querySelectorAll("select[name='zona']")).map(z => z.value);
         let direcciones = Array.from(document.querySelectorAll("input[name='direccion']")).map(d => d.value);
 
@@ -39,12 +36,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.error || "No se pudo agregar el cliente.");
+                const errorData = await response.json();
+                throw new Error(errorData.error || "No se pudo agregar el cliente.");
             }
 
+            const data = await response.json();
             Swal.fire({
                 icon: "success",
                 title: "Éxito",
@@ -57,49 +54,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } catch (error) {
             console.error("❌ Error en la solicitud:", error);
-            Swal.fire("Error", "Ocurrió un error inesperado.", "error");
+            Swal.fire({ icon: "error", title: "Error", text: "Ocurrió un error inesperado." });
         }
     }
 
-    // ✅ Evento para el formulario de nuevo cliente (solo si existe)
     const formNuevoCliente = document.getElementById("formNuevoCliente");
     if (formNuevoCliente) {
         formNuevoCliente.addEventListener("submit", registrarCliente);
     }
 
-    // ✅ Obtener direcciones del cliente seleccionado
-    const clienteSelect = document.getElementById("id_cliente");
-    if (clienteSelect) {
-        clienteSelect.addEventListener("change", function () {
-            let clienteId = this.value;
-            if (!clienteId) return;
+    document.getElementById("id_cliente").addEventListener("change", function(){
+        let clienteId = this.value;
 
-            fetch(`/usuarios/obtener_direcciones_cliente/${clienteId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    const direccionSelect = document.getElementById("id_direccion_instalacion");
-                    if (!direccionSelect) return;
+        fetch(`/usuarios/obtener_direcciones_cliente/${clienteId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const direccionSelect = document.getElementById("id_direccion_instalacion");
+            direccionSelect.innerHTML = "";
 
-                    direccionSelect.innerHTML = ""; // Limpiar opciones
-
-                    if (data.length > 0) {
-                        data.forEach(direccion => {
-                            const option = new Option(direccion.zona + " - " + direccion.direccion, direccion.id);
-                            direccionSelect.add(option);
-                        });
-                    } else {
-                        direccionSelect.innerHTML = "<option>No hay direcciones registradas</option>";
-                    }
-                })
-                .catch(error => console.error("❌ Error al obtener direcciones:", error));
+            if(data.length > 0){
+                data.forEach(direccion => {
+                    const option = new Option(direccion.zona + " - " + direccion.direccion, direccion.id);
+                    direccionSelect.add(option);
+                });
+            } else {
+                direccionSelect.innerHTML = "<option>No hay direcciones registradas</option>";
+            }
+        })
+        .catch(error => {
+            console.error("Error al obtener direcciones:", error);
         });
-    }
+    });
 
-    // ✅ Eliminar cliente con confirmación
     document.querySelectorAll(".btn-eliminar").forEach(btn => {
         btn.addEventListener("click", async function () {
             let clienteId = this.getAttribute("data-id");
-            if (!clienteId) return;
 
             Swal.fire({
                 title: "¿Estás seguro?",
@@ -124,11 +113,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             let fila = document.querySelector(`tr[data-id="${clienteId}"]`);
                             if (fila) {
                                 fila.remove();
-                            } else {
-                                console.warn("❌ No se encontró la fila del cliente eliminado.");
                             }
                         } else {
-                            Swal.fire("Error", data.error || "No se pudo eliminar el cliente.", "error");
+                            Swal.fire("Error", "No se pudo eliminar el cliente.", "error");
                         }
                     } catch (error) {
                         console.error("❌ Error en la solicitud:", error);
@@ -139,5 +126,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    console.log("✅ clientes.js ejecutado correctamente.");
 });

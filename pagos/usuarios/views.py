@@ -11,13 +11,16 @@ from django.contrib import messages
 # Autenticación
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Cliente, DireccionInstalacion
+
 
 # Formularios locales
 from .forms import (
     ClienteForm,
     ContratoForm,
     DireccionFormSet,
-    DireccionForm
+    DireccionForm,
+    ServicioForm
 )
 
 # Modelos locales
@@ -37,7 +40,7 @@ import random
 import json
 import traceback
 
-from .forms import ServicioForm
+
 
 def login_view(request):
     if request.method == "POST":
@@ -424,38 +427,42 @@ def crear_cliente(request):
         'formset': formset,
     })
 
-# Edita un cliente existente
+
 def editar_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
-    if request.method == 'POST':
+
+    if request.method == "POST":
         form = ClienteForm(request.POST, instance=cliente)
         formset = DireccionFormSet(request.POST, instance=cliente)
+
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
+            print("✅ Cliente guardado correctamente")
             return redirect('cliente_list')
+
+        else:
+            print("❌ Error en el formulario:")
+            print(form.errors)
+            print(formset.errors)
+
     else:
         form = ClienteForm(instance=cliente)
         formset = DireccionFormSet(instance=cliente)
-    
-    return render(request, 'usuarios/cliente_form.html', {
-        'form': form,
-        'formset': formset,
-    })
+
+    return render(request, 'usuarios/cliente_form.html', {'form': form, 'formset': formset})
+
+
+
 
 
 def obtener_direcciones_cliente(request, cliente_id):
-    direcciones = DireccionInstalacion.objects.filter(cliente_id=cliente_id)
-    data = []
-
-    for direccion in direcciones:
-        data.append({
-            'id': direccion.id,
-            'direccion': direccion.direccion,
-            'zona': direccion.zona.nombre if direccion.zona else 'Sin zona'
-        })
-
-    return JsonResponse({'direcciones': data})
+    try:
+        cliente = Cliente.objects.get(id=cliente_id)
+        data = {'direccion': cliente.direccion}  # Asegúrate de que 'direccion' sea el campo correcto
+    except Cliente.DoesNotExist:
+        data = {'direccion': ''}  # Si el cliente no existe, devuelve una dirección vacía
+    return JsonResponse(data)
 
 
 def crear_contrato(request):
@@ -497,7 +504,8 @@ def eliminar_contrato(request, pk):
     contrato = get_object_or_404(Contrato, pk=pk)
     contrato.delete()
     messages.success(request, "Contrato eliminado correctamente.")
-    return redirect('lista_contratos')  # Asegúrate de que esta URL existe
+    return redirect('lista_contratos')  # Asegúrate de que esta vista existe en `urls.py`
+
 
 
 def lista_servicios(request):
@@ -535,6 +543,47 @@ def eliminar_servicio(request, servicio_id):
         messages.error(request, f"No se pudo eliminar el servicio: {e}")
 
     return redirect('servicios')
+# API para obtener la lista de clientes
+def api_clientes(request):
+    clientes = Cliente.objects.all().values("id", "numero_documento", "nombre")
+    return JsonResponse(list(clientes), safe=False)
+
+# API para obtener direcciones del cliente seleccionado
+def api_direcciones_cliente(request, cliente_id):
+    direcciones = DireccionInstalacion.objects.filter(cliente_id=cliente_id).values("id", "direccion", "zona__nombre")
+    return JsonResponse(list(direcciones), safe=False)
+
+
+def buscar_cliente(request):
+    query = request.GET.get('query', '')
+
+    if query:
+        clientes = Cliente.objects.filter(
+            Q(nombre__icontains=query) | Q(numero_documento__icontains=query)
+        ).prefetch_related('contrato_set')
+
+        data = []
+        for cliente in clientes:
+            contrato = cliente.contrato_set.first()  # Obtener el primer contrato si existe
+            servicios = contrato.servicios.all() if contrato else []
+            servicio_nombres = ", ".join([s.nombre for s in servicios]) if servicios else "Sin servicio"
+
+            data.append({
+                'id': cliente.id,
+                'nombre': cliente.nombre,
+                'direccion': contrato.direccion_instalacion.direccion if contrato and contrato.direccion_instalacion else "No registrada",
+                'telefono': cliente.telefono if cliente.telefono else "No registrado",
+                'servicio': servicio_nombres
+            })
+
+        return JsonResponse(data, safe=False)
+
+    return JsonResponse({'error': 'No se encontraron clientes'}, status=404)
+
+def pago_servicios(request):
+    return render(request, 'usuarios/pago_servicios.html')
+
+
 
 
 

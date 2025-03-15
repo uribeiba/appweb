@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Mantenimiento de Avenidas</h3>
+        <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#crearAvenidaModal">
+            + Nueva Avenida
+        </button>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Avenida</th>
+                    <th>Zona</th>
+                    <th>Fecha Registro</th>
+                    <th>Fecha Actualización</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for avenida in avenidas %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ avenida.nombre }}</td>
+                    <td>{{ avenida.zona.nombre }}</td>
+                    <td>{{ avenida.fecha_registro }}</td>
+                    <td>{{ avenida.fecha_actualizacion }}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#editarAvenidaModal{{ avenida.id }}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <a href="{% url 'eliminar_avenida' avenida.id %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('¿Estás seguro de eliminar esta avenida?');">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Modal Editar Avenida -->
+                <div class="modal fade" id="editarAvenidaModal{{ avenida.id }}" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form method="POST" action="{% url 'editar_avenida' avenida.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Editar Avenida</h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Nombre de Avenida</label>
+                                        <input type="text" class="form-control" name="nombre" value="{{ avenida.nombre }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Zona</label>
+                                        <select class="form-control" name="zona" required>
+                                            {% for zona in zonas %}
+                                                <option value="{{ zona.id }}" {% if avenida.zona.id == zona.id %}selected{% endif %}>{{ zona.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-success">Guardar</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Crear Avenida -->
+<div class="modal fade" id="crearAvenidaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'crear_avenida' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Avenida</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nombre de Avenida</label>
+                        <input type="text" class="form-control" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Zona</label>
+                        <select class="form-control" name="zona" required>
+                            {% for zona in zonas %}
+                                <option value="{{ zona.id }}">{{ zona.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+
+$.ajax({
+    url: "{% url 'agregar_cliente' %}",
+    type: "POST",
+    data: formData,
+    success: function(response) {
+        if (response.success) {
+            $('#modalAgregarCliente').modal('hide');
+            
+            // Agregar nueva fila
+            const nuevaFila = `
+                <tr data-id="${response.id}">
+                    <td class="documento">${response.documento}</td>
+                    <td class="nombre">${response.nombre} ${response.apellido_paterno}</td>
+                    <td class="telefono">${response.telefono}</td>
+                    <td class="email">${response.email || ''}</td>
+                    <td>
+                        <span class="badge estatus bg-success">
+                            Activo
+                        </span>
+                    </td>
+                    <td>
+                        <ul></ul> <!-- Espacio para direcciones -->
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" href="/clientes/${response.id}/">
+                            Ver detalle
+                        </a>
+                        <button class="btn btn-info btn-sm btn-editar" data-id="${response.id}">
+                            <i class="fa fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm btn-eliminar" data-id="${response.id}">
+                            <i class="fa fa-trash"></i> Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `;
+            
+            $('table tbody').prepend(nuevaFila);  // Agregar al inicio
+            $('#formNuevoCliente')[0].reset();    // Limpiar formulario
+        } else {
+            // Manejo de errores
+            if(response.error) {
+                let errorMessage = 'Errores:\n';
+                for(const field in response.error) {
+                    errorMessage += `- ${field}: ${response.error[field].join(', ')}\n`;
+                }
+                alert(errorMessage);
+            }
+        }
+    },
+    error: function(xhr) {
+        alert('Error de conexión: ' + xhr.statusText);
+    }
+});
+
+
+
+
+    $(document).ready(function() {
+        // ... código existente ...
+        
+        $('#formNuevoCliente').submit(function(e) {
+            e.preventDefault();
+            const formData = $(this).serializeArray();
+            
+            $.ajax({
+                // Configuración AJAX aquí
+                success: function(response) {
+                    // El código que acabas de pegar
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

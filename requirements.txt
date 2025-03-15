@@ -5,3 +5,4 @@ pillow==11.1.0
 psycopg2==2.9.10
 reportlab==4.3.0
 sqlparse==0.5.3
+Python 3.11.3

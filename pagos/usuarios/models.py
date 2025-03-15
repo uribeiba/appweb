@@ -37,32 +37,25 @@ class Zona(models.Model):
         return self.nombre
 
 class Cliente(models.Model):
-    DOCUMENTO_SEXO = [
-        ('M', 'Masculino'),
-        ('F', 'Femenino'),
-        ('O', 'Otro'),
-    ]
-
-    numero_documento = models.CharField(max_length=50, unique=True)
-    nombre = models.CharField(max_length=200)
-    apellido_paterno = models.CharField(max_length=100)
-    apellido_materno = models.CharField(max_length=100)
+    numero_documento = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=50)
+    apellido_paterno = models.CharField(max_length=50)
+    apellido_materno = models.CharField(max_length=50, blank=True, null=True)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
     correo = models.EmailField(blank=True, null=True)
-    sexo = models.CharField(max_length=1, choices=DOCUMENTO_SEXO)
+    sexo = models.CharField(max_length=10, choices=[("M", "Masculino"), ("F", "Femenino")], blank=True, null=True)
     fecha_nacimiento = models.DateField(blank=True, null=True)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
+        return f"{self.nombre} {self.apellido_paterno}"
 
 class DireccionInstalacion(models.Model):
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='direcciones_instalacion')
-    zona = models.ForeignKey(Zona, on_delete=models.SET_NULL, null=True)
-    direccion = models.CharField(max_length=255)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="direcciones_instalacion")
+    zona = models.ForeignKey(Zona, on_delete=models.CASCADE)
+    direccion = models.TextField()
 
     def __str__(self):
-        return f"{self.direccion} - {self.zona.nombre if self.zona else 'Sin zona'}"
-
+        return f"{self.direccion} ({self.zona.nombre})"
 
 
 class Servicio(models.Model):
@@ -78,11 +71,16 @@ class Contrato(models.Model):
     direccion_instalacion = models.ForeignKey('DireccionInstalacion', on_delete=models.SET_NULL, null=True)
     servicios = models.ManyToManyField('Servicio')
     fecha_contratacion = models.DateField()
-    dia_pago = models.PositiveIntegerField(default=1)  # Asegura que solo acepte valores positivos
+    dia_pago = models.PositiveSmallIntegerField(  # Solo almacena el día del 1 al 30
+        choices=[(i, i) for i in range(1, 31)],
+        verbose_name="Día de Pago",
+        null=True, blank=True
+    )
     dias_gracia = models.PositiveIntegerField(default=0)
     numero_abonado = models.CharField(max_length=50, blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
-        return f"Contrato de {self.cliente} - Día de pago: {self.dia_pago} - Total: ${self.total}"
+        return f"Contrato de {self.cliente} - Total: ${self.total}"
+

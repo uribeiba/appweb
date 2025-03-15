@@ -1,11 +1,19 @@
 from django.urls import path
 from . import views  # Importa todas las vistas
 from .views import ClienteListView, crear_cliente, editar_cliente
-from .views import lista_contratos, crear_contrato, editar_contrato
-from .views import eliminar_contrato  # Asegúrate de importar la vista
+from .views import lista_contratos, crear_contrato, editar_contrato, obtener_direcciones_cliente, eliminar_contrato
+from .views import api_clientes, api_direcciones_cliente
+from .views import pago_servicios
+
+
 
 
 urlpatterns = [
+    
+    # Rutas para la página principal
+     # Redirige la ruta vacía ('') al login personalizado
+    path('', views.login_view, name='login'),
+
     # Autenticación
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -16,7 +24,6 @@ urlpatterns = [
     path('usuarios/crear/', views.crear_usuario, name='crear_usuario'),
     path('usuarios/editar/<int:user_id>/', views.editar_usuario, name='editar_usuario'),
     path('usuarios/eliminar/<int:user_id>/', views.eliminar_usuario, name='eliminar_usuario'),
-
     # Empleados
     path('empleados/', views.lista_empleados, name='lista_empleados'),
     path('empleados/crear/', views.crear_empleado, name='crear_empleado'),
@@ -37,21 +44,27 @@ urlpatterns = [
     path('get_zonas/', views.get_zonas, name='get_zonas'),
 
     # Clientes
+    
     path('clientes/', ClienteListView.as_view(), name='cliente_list'),
-    path('clientes/nuevo/', crear_cliente, name='crear_cliente'),
-    path('clientes/<int:pk>/editar/', editar_cliente, name='editar_cliente'),
-    path('obtener_direcciones_cliente/<int:cliente_id>/', views.obtener_direcciones_cliente, name='obtener_direcciones_cliente'),
+    path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
+    path('clientes/editar/<int:pk>/', editar_cliente, name="editar_cliente"),
 
     
-    # Contratos
-    path('contratos/', lista_contratos, name='lista_contratos'),
-    path('contratos/nuevo/', crear_contrato, name='crear_contrato'),
-    path('contratos/<int:pk>/editar/', editar_contrato, name='editar_contrato'),
-     path('contratos/eliminar/<int:pk>/', eliminar_contrato, name='eliminar_contrato'),
-    
+  # Contratos
+    path('contratos/', views.lista_contratos, name='lista_contratos'),
+    path('contratos/crear/', views.crear_contrato, name='crear_contrato'),
+    path('contratos/editar/<int:pk>/', editar_contrato, name='editar_contrato'),
+    path('contratos/eliminar/<int:pk>/', eliminar_contrato, name='eliminar_contrato'),
+
     
     path('servicios/', views.lista_servicios, name='servicios'),
     path('servicios/agregar/', views.agregar_servicio, name='agregar_servicio'),
     path('servicios/<int:servicio_id>/editar/', views.editar_servicio, name='editar_servicio'),
     path('servicios/<int:servicio_id>/eliminar/', views.eliminar_servicio, name='eliminar_servicio'),
+    
+    path('get_direccion/<int:cliente_id>/', views.obtener_direcciones_cliente, name='obtener_direcciones_cliente'),
+    path('api/clientes/', api_clientes, name='api_clientes'),
+    path('api/clientes/<int:cliente_id>/direcciones/', api_direcciones_cliente, name='api_direcciones_cliente'),
+    
+    path('pagos/', pago_servicios, name='pago_servicios'),
 ]
