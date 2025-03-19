@@ -78,3 +78,18 @@
     align-items: center;
     gap: 8px;
 }
+
+.pagination {
+    flex-wrap: wrap !important; /* Permite que las páginas se acomoden en varias líneas */
+    overflow-x: auto; /* Agrega desplazamiento horizontal si es necesario */
+    justify-content: center;
+}
+
+.pagination .page-item {
+    margin: 2px;
+}
+
+.pagination .page-link {
+    padding: 6px 12px;
+    font-size: 14px;
+}

@@ -1,14 +1,125 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Bienvenido al Sistema de Pagos</h3>
+<div class="container">
+    <h2>Control Panel</h2>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row">
+        <!-- Tarjeta de Clientes -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Clientes</h5>
+                    <h3 id="total-clientes">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Contratos -->
+        <div class="col-md-3">
+            <div class="card bg-success text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Contratos</h5>
+                    <h3 id="total-contratos">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Pagos -->
+        <div class="col-md-3">
+            <div class="card bg-warning text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Pagos</h5>
+                    <h3 id="total-pagos">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Total Ingresos -->
+        <div class="col-md-3">
+            <div class="card bg-danger text-white text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <h3 id="total-ingresos">$0</h3>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <p>Aquí puedes administrar usuarios, pagos y más.</p>
-    </div>
+
+    <!-- Gráfico de Ingresos por Mes -->
+    <h3 class="mt-4">Ingresos por Mes</h3>
+    <canvas id="graficoIngresos"></canvas>
 </div>
+
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Script para el Gráfico y Actualización de Datos -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Obtener los datos dinámicamente
+        fetch('/dashboard/data/')
+            .then(response => response.json())
+            .then(data => {
+                // Actualizar las tarjetas
+                document.getElementById('total-clientes').innerText = data.total_clientes;
+                document.getElementById('total-contratos').innerText = data.total_contratos;
+                document.getElementById('total-pagos').innerText = data.total_pagos;
+
+                // Formatear el total de ingresos (eliminar .00 y agregar $)
+                const totalIngresos = parseFloat(data.total_ingresos).toFixed(0);
+                document.getElementById('total-ingresos').innerText = `$${totalIngresos}`;
+
+                // Configurar el gráfico (si tienes datos de meses e ingresos)
+                const ctx = document.getElementById('graficoIngresos').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"], // Ejemplo de meses
+                        datasets: [{
+                            label: 'Ingresos por Mes',
+                            data: [1000, 1500, 1200, 1800, 2000, 2500], // Ejemplo de ingresos
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+
+<!-- Estilos Personalizados -->
+<style>
+    .card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .card-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+</style>
+
 {% endblock %}

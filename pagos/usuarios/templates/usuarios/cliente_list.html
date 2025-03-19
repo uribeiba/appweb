@@ -41,7 +41,12 @@
                     </ul>
                 </td>
                 <td>
-                    <a href="{% url 'editar_cliente' cliente.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                    <a href="{% url 'editar_cliente' cliente.pk %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'eliminar_cliente' cliente.pk %}" class="btn btn-danger btn-sm mt-1" onclick="return confirm('¿Estás seguro de que deseas eliminar este cliente?');">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
                 </td>
             </tr>
             {% empty %}
@@ -54,33 +59,41 @@
 
     <!-- Paginador -->
     {% if is_paginated %}
-    <nav>
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?buscar={{ buscar }}&page={{ page_obj.previous_page_number }}">Anterior</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-            {% endif %}
+    <!-- Paginación -->
+<nav aria-label="Paginación de clientes">
+    <ul class="pagination justify-content-center flex-wrap">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">«</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            </li>
+        {% endif %}
 
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                {% else %}
-                    <li class="page-item"><a class="page-link" href="?buscar={{ buscar }}&page={{ num }}">{{ num }}</a></li>
-                {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?buscar={{ buscar }}&page={{ page_obj.next_page_number }}">Siguiente</a>
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
                 </li>
-            {% else %}
-                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
             {% endif %}
-        </ul>
-    </nav>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">»</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
     {% endif %}
 
 </div>

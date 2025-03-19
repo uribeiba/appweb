@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h1 class="card-title"><i class="fas fa-user"></i> Cliente: {{ cliente.nombre }} {{ cliente.apellido_paterno }}</h1>
+                    <br>
+                    <p><strong>Servicios Contratados:</strong>
+                        {% for contrato in contratos %}
+                            <br><strong>Contrato #{{ contrato.id }}:</strong>
+                            {% for servicio in contrato.servicios.all %}
+                                <br> - {{ servicio.nombre }} (${{ servicio.precio }})
+                            {% empty %}
+                                <br>No hay servicios asociados
+                            {% endfor %}
+                        {% empty %}
+                            <br>No hay contratos asociados
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-calendar-alt"></i> Estado  de Pagos</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                {% for mes, nombre_mes in MESES_CHOICES|slice:":6" %}
+                                    <li>
+                                        <span class="fw-bold">{{ nombre_mes }}</span>
+                                        {% if mes in pagos_realizados %}
+                                            <span class="badge bg-success">Pagado</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                {% for mes, nombre_mes in MESES_CHOICES|slice:"6:" %}
+                                    <li>
+                                        <span class="fw-bold">{{ nombre_mes }}</span>
+                                        {% if mes in pagos_realizados %}
+                                            <span class="badge bg-success">Pagado</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="text-center my-4">
+        {% if contratos %}
+            <h2>Total a Cobrar: $<span id="total_a_cobrar">{{ contratos.0.total }}</span></h2>
+        {% else %}
+            <h2>Total a Cobrar: $0.00</h2>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3><i class="fas fa-cash-register"></i> Registrar Pago</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'registrar_pago' cliente.id %}">
+
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-file-contract"></i> Seleccionar Contrato:</label>
+                    <select id="id_contrato" name="contrato" class="form-control">
+                        <option value="">-- Seleccione un contrato --</option>
+                        {% for contrato in contratos %}
+                            <option value="{{ contrato.id }}" data-monto="{{ contrato.total }}">
+                                Contrato #{{ contrato.id }} - Total: ${{ contrato.total }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-calendar-alt"></i> Mes Pagado:</label>
+                        {{ form.mes_pagado }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Año Pagado:</label>
+                        {{ form.anio_pagado }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-dollar-sign"></i> Monto:</label>
+                    <input type="text" id="id_monto" name="monto" class="form-control" value="" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-credit-card"></i> Forma de Pago:</label>
+                    {{ form.forma_pago }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-receipt"></i> Número de Boleta:</label>
+                    {{ form.numero_boleta }}
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fas fa-check-circle"></i> Registrar Pago
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script para actualizar el monto automáticamente -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let contratoSelect = document.getElementById("id_contrato");
+        let montoInput = document.getElementById("id_monto");
+        let totalDisplay = document.getElementById("total_a_cobrar");
+
+        contratoSelect.addEventListener("change", function () {
+            let selectedOption = contratoSelect.options[contratoSelect.selectedIndex];
+            let monto = selectedOption.getAttribute("data-monto") || "0.00";
+            montoInput.value = monto;
+            totalDisplay.textContent = monto;
+        });
+    });
+</script>
+
+{% endblock %}

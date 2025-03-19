@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-chart-line"></i> Informe de Ingresos por Mes</h2>
+
+    <!-- Filtros -->
+    <form method="GET" action="{% url 'informe_ingresos' %}" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="mes">Mes:</label>
+                <select name="mes" class="form-control">
+                    <option value="">Todos</option>
+                    {% for key, value in meses.items %}
+                        <option value="{{ key }}" {% if key|stringformat:"s" == request.GET.mes %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="anio">Año:</label>
+                <select name="anio" class="form-control">
+                    <option value="">Todos</option>
+                    {% for anio in anios %}
+                        <option value="{{ anio }}" {% if anio|stringformat:"s" == request.GET.anio %}selected{% endif %}>{{ anio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabla de ingresos -->
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Mes</th>
+                <th>Año</th>
+                <th>Total Ingresos</th>
+                <th>Cantidad de Pagos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ingreso in ingresos %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ ingreso.nombre_mes }}</td>
+                <td>{{ ingreso.anio }}</td>
+                <td>${{ ingreso.total_ingresos|floatformat:2 }}</td>
+                <td>{{ ingreso.cantidad_pagos }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No hay ingresos registrados en el período seleccionado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

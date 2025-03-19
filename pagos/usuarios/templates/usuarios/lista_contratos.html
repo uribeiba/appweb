@@ -52,5 +52,34 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- ✅ Paginador -->
+    {% if contratos.paginator.num_pages > 1 %}
+    <nav aria-label="Paginador de contratos">
+        <ul class="pagination justify-content-center">
+            {% if contratos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; Primero</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contratos.previous_page_number }}">Anterior</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Página {{ contratos.number }} de {{ contratos.paginator.num_pages }}</span>
+            </li>
+
+            {% if contratos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contratos.next_page_number }}">Siguiente</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ contratos.paginator.num_pages }}">Último &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Historial de Pagos</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Mes/Año</th>
+                <th>Monto</th>
+                <th>Forma de Pago</th>
+                <th>Número de Boleta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos %}
+            <tr>
+                <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'historial_pagos_cliente' pago.cliente.id %}">
+                        {{ pago.cliente.nombre }} {{ pago.cliente.apellido_paterno }}
+                    </a>
+                </td>
+                <td>{{ pago.mes_pagado }}/{{ pago.anio_pagado }}</td>
+                <td>${{ pago.monto }}</td>
+                <td>{{ pago.get_forma_pago_display }}</td>
+                <td>{{ pago.numero_boleta }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No hay pagos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Paginación -->
+    {% if pagos.has_other_pages %}
+    <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center">
+            {% if pagos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; Primero</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ pagos.previous_page_number }}">Anterior</a>
+                </li>
+            {% endif %}
+
+            {% for num in pagos.paginator.page_range %}
+                {% if pagos.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > pagos.number|add:'-3' and num < pagos.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ pagos.next_page_number }}">Siguiente</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ pagos.paginator.num_pages }}">Último &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

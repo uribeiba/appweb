@@ -84,3 +84,24 @@ class Contrato(models.Model):
     def __str__(self):
         return f"Contrato de {self.cliente} - Total: ${self.total}"
 
+
+class Pago(models.Model):
+    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE)
+    contrato = models.ForeignKey('Contrato', on_delete=models.CASCADE)
+    mes_pagado = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 13)])
+    anio_pagado = models.PositiveIntegerField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    forma_pago = models.CharField(
+        max_length=50,
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('tarjeta', 'Tarjeta de Crédito/Débito'),
+            ('transferencia', 'Transferencia Bancaria'),
+            ('otro', 'Otro')
+        ]
+    )
+    numero_boleta = models.CharField(max_length=100, unique=True)
+    fecha_pago = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pago de {self.monto} - {self.cliente} ({self.mes_pagado}/{self.anio_pagado})"

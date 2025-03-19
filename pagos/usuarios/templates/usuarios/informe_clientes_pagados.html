@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-file-invoice-dollar"></i> Informe de Clientes Pagados</h2>
+
+    <!-- Filtros -->
+    <form method="GET" action="{% url 'informe_clientes_pagados' %}" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="mes">Mes:</label>
+                <select name="mes" class="form-control">
+                    <option value="">Todos</option>
+                    {% for key, value in meses.items %}
+                        <option value="{{ key }}" {% if key|stringformat:"s" == request.GET.mes %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="anio">Año:</label>
+                <select name="anio" class="form-control">
+                    <option value="">Todos</option>
+                    {% for anio in anios %}
+                        <option value="{{ anio }}" {% if anio|stringformat:"s" == request.GET.anio %}selected{% endif %}>{{ anio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabla de datos -->
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Documento</th>
+                <th>Cliente</th>
+                <th>Mes</th>
+                <th>Año</th>
+                <th>Monto Total</th>
+                <th>Último Pago</th>
+                <th>Nº Boleta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ pago.cliente__numero_documento }}</td>
+                <td>{{ pago.cliente__nombre }} {{ pago.cliente__apellido_paterno }} {{ pago.cliente__apellido_materno }}</td>
+                <td>{{ pago.nombre_mes }}</td>
+                <td>{{ pago.fecha_pago__year }}</td>
+                <td>${{ pago.monto_total|floatformat:2 }}</td>
+                <td>{{ pago.ultimo_pago|date:"d/m/Y" }}</td>
+                <td>{{ pago.numero_boleta }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No se encontraron pagos en el período seleccionado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

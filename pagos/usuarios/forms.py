@@ -1,7 +1,9 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Cliente, Contrato, Servicio, Zona, DireccionInstalacion
+from .models import Cliente, Contrato, Servicio, Zona, DireccionInstalacion, Pago
 
+
+### 🔹 FORMULARIO CLIENTE ###
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
@@ -18,6 +20,7 @@ class ClienteForm(forms.ModelForm):
         return numero_documento
 
 
+### 🔹 FORMULARIO DIRECCIÓN ###
 class DireccionForm(forms.ModelForm):
     class Meta:
         model = DireccionInstalacion
@@ -35,25 +38,9 @@ DireccionFormSet = inlineformset_factory(
     can_delete=True
 )
 
+
+### 🔹 FORMULARIO CONTRATO ###
 class ContratoForm(forms.ModelForm):
-    class Meta:
-        model = Contrato
-        fields = ['cliente', 'direccion', 'fecha_inicio', 'fecha_fin', 'monto']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Inicializa el campo de dirección si ya hay un cliente seleccionado
-        if self.instance and self.instance.cliente:
-            self.fields['direccion'].initial = self.instance.cliente.direccion
-    class Meta:
-        model = Contrato
-        fields = ['cliente', 'direccion', 'fecha_inicio', 'fecha_fin', 'monto']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Inicializa el campo de dirección si ya hay un cliente seleccionado
-        if self.instance and self.instance.cliente:
-            self.fields['direccion'].initial = self.instance.cliente.direccion
     servicios = forms.ModelMultipleChoiceField(
         queryset=Servicio.objects.all(),
         widget=forms.CheckboxSelectMultiple(),
@@ -66,7 +53,6 @@ class ContratoForm(forms.ModelForm):
         label="Fecha de contratación"
     )
 
-    # Nuevo campo para seleccionar el día de pago (del 1 al 30)
     dia_pago = forms.ChoiceField(
         choices=[(i, i) for i in range(1, 31)],
         required=False,
@@ -75,7 +61,7 @@ class ContratoForm(forms.ModelForm):
     )
 
     direccion_instalacion = forms.ModelChoiceField(
-        queryset=DireccionInstalacion.objects.none(),
+        queryset=DireccionInstalacion.objects.none(),  # Se actualizará en __init__
         widget=forms.Select(attrs={'class': 'form-control'}),
         required=True,
         label="Dirección de instalación"
@@ -95,8 +81,7 @@ class ContratoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
-    def __init__(self, *args, **kwargs):
-        cliente_id = kwargs.pop('cliente_id', None)
+    def __init__(self, *args, cliente_id=None, **kwargs):
         super().__init__(*args, **kwargs)
         
         # Carga direcciones según cliente seleccionado
@@ -105,7 +90,7 @@ class ContratoForm(forms.ModelForm):
         else:
             self.fields['direccion_instalacion'].queryset = DireccionInstalacion.objects.none()
 
-        # Aquí añadimos el precio de cada servicio como atributo personalizado
+        # Cargar los servicios con sus precios como atributos en el HTML
         self.fields['servicios'].queryset = Servicio.objects.all()
         for servicio in self.fields['servicios'].queryset:
             self.fields['servicios'].widget.attrs.update({
@@ -113,6 +98,7 @@ class ContratoForm(forms.ModelForm):
             })
 
 
+### 🔹 FORMULARIO SERVICIO ###
 class ServicioForm(forms.ModelForm):
     class Meta:
         model = Servicio
@@ -121,3 +107,39 @@ class ServicioForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
+
+
+
+# Definir las opciones de meses con nombres
+MESES_CHOICES = [
+    (1, "Enero"), (2, "Febrero"), (3, "Marzo"), (4, "Abril"),
+    (5, "Mayo"), (6, "Junio"), (7, "Julio"), (8, "Agosto"),
+    (9, "Septiembre"), (10, "Octubre"), (11, "Noviembre"), (12, "Diciembre")
+]
+
+class PagoForm(forms.ModelForm):
+    mes_pagado = forms.ChoiceField(choices=MESES_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = Pago
+        fields = ['contrato', 'mes_pagado', 'anio_pagado', 'monto', 'forma_pago', 'numero_boleta']
+        widgets = {
+            'contrato': forms.Select(attrs={'class': 'form-control'}),
+            'anio_pagado': forms.NumberInput(attrs={'class': 'form-control', 'min': '2000', 'max': '2100'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'forma_pago': forms.Select(attrs={'class': 'form-control'}),
+            'numero_boleta': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, cliente_id=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if cliente_id:
+            self.fields['contrato'].queryset = Contrato.objects.filter(cliente_id=cliente_id)
+        else:
+            self.fields['contrato'].queryset = Contrato.objects.none()
+
+    def clean_contrato(self):
+        contrato = self.cleaned_data.get('contrato')
+        if not contrato:
+            raise forms.ValidationError("Debe seleccionar un contrato válido.")
+        return contrato
